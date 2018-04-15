@@ -9,7 +9,6 @@ param (
     [Boolean] $EnableFFI = $false,
     [Boolean] $EnableZLIB = $true,
     [Boolean] $Shared = $false,
-    [Microsoft.VisualStudio.Setup.Instance] $VSSetupInstance,
 
     [Parameter(Mandatory=$true)]
     [ValidateSet('X86', 'AMD64', 'ARM')]
@@ -38,14 +37,11 @@ switch ($Architecture) {
     default { throw "Unhandled architecture '$Architecture'." }
 }
 
+$VSSetupInstance = Get-VSSetupInstance -All | Select-VSSetupInstance `
+    -Latest -Require "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
 if (-not $VSSetupInstance) {
-    $VSSetupInstance = Get-VSSetupInstance -All | Select-VSSetupInstance `
-        -Latest -Require "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
-    if (-not $VSSetupInstance) {
-        throw "No suitable Visual Studio installation found."
-    }
+    throw "No suitable Visual Studio installation found."
 }
-
 $VSInstanceDir = $VSSetupInstance.InstallationPath
 
 cmd /c "`"$VSInstanceDir\Common7\Tools\vsdevcmd.bat`" -arch=$VSTargetArch -host_arch=x64 && set" | ForEach-Object {
