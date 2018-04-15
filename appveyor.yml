@@ -11,7 +11,7 @@ install:
   - ps: |
       Push-Location
       Set-Location C:\
-      git clone --depth=1 --branch $env:branch https://github.com/llvm-mirror/llvm src
+      git clone -q --depth=1 --branch $env:branch https://github.com/llvm-mirror/llvm src
       Pop-Location
 
 build_script:
