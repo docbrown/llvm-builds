@@ -1,47 +1,47 @@
 image: Visual Studio 2017
 
 environment:
+  ninja: https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip
   repo: https://github.com/llvm-mirror/llvm
   branch: release_60
-  targets: all
+  targets: AArch64;ARM;Mips;X86
   matrix:
-    - arch: x64
+    - arch: amd64
       config: Debug
 
+artifacts:
+  - path: '*.zip'
+    name: 'LLVM'
+
 install:
-  - git clone -q --depth=1 --branch %branch% %repo% C:\src
+  # Install Ninja
+  - appveyor DownloadFile %ninja% -FileName ninja.zip
+  - 7z x ninja.zip -o ninja
+  - set PATH=%APPVEYOR_BUILD_FOLDER%\ninja;%PATH%
+  - ninja --version
+  # Download LLVM sources
+  - git clone -q --depth=1 --branch %branch% %repo% llvm-src
 
 build_script:
-  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=%arch% -host_arch=x64
-  - ps: |
-      $srcdir = 'C:\src'
-      $builddir = 'C:\build'
-      $installdir = 'C:\install'
-      $generator = 'Visual Studio 15 2017'
-      switch ($env:arch) {
-        x86 { }
-        x64 { $generator += ' Win64' }
-        arm { $generator += ' ARM' }
-        default { throw "Bad architecture '$env:arch'." }
-      }
-      New-Item $builddir -ItemType Directory
-      New-Item $installdir -ItemType Directory
-      Set-Location $builddir
-      $args = @(
-        '-G', "`"$generator`"",
-        "-DCMAKE_INSTALL_PREFIX:STRING=$installdir",
-        "-DCMAKE_BUILD_TYPE:STRING=$config",
-        "-DLLVM_TARGETS_TO_BUILD:STRING=$($env:targets -join ';')",
-        "-DLLVM_BUILD_TOOLS:BOOL=OFF",
-        "-DLLVM_INCLUDE_TOOLS:BOOL=OFF",
-        "-DLLVM_INCLUDE_EXAMPLES:BOOL=FALSE",
-        "-DLLVM_INCLUDE_TESTS:BOOL=FALSE",
-        "-DLLVM_ENABLE_EH:BOOL=OFF",
-        "-DLLVM_ENABLE_RTTI:BOOL=OFF",
-        "-DLLVM_ENABLE_FFI:BOOL=OFF",
-        "-DLLVM_ENABLE_ZLIB:BOOL=OFF",
-        "-DLLVM_BUILD_LLVM_DYLIB:BOOL=OFF",
-        "-DLLVM_OPTIMIZED_TABLEGEN:BOOL=ON"
-      )
-      cmake $args $srcdir
-      cmake --build . --target install --config $env:config
+  - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=%arch% -host_arch=amd64 -no_logo
+  - cd %APPVEYOR_BUILD_FOLDER%
+  - set prefix=llvm-%branch%-win-%arch%-static-md
+  - mkdir %prefix%
+  - mkdir build && cd build
+  - cmd: |
+      cmake -G Ninja -Thost=x64^
+       -DCMAKE_INSTALL_PREFIX:STRING=%APPVEYOR_BUILD_FOLDER%\%prefix%^
+       -DCMAKE_BUILD_TYPE:STRING=%config%^
+       -DLLVM_TARGETS_TO_BUILD:STRING=%targets%^
+       -DLLVM_INCLUDE_EXAMPLES:BOOL=NO^
+       -DLLVM_INCLUDE_TESTS:BOOL=NO^
+       -DLLVM_ENABLE_EH:BOOL=NO^
+       -DLLVM_ENABLE_RTTI:BOOL=NO^
+       -DLLVM_ENABLE_FFI:BOOL=NO^
+       -DLLVM_ENABLE_ZLIB:BOOL=NO^
+       -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO^
+       -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES^
+       ..\llvm-src
+  - cmake --build . --target install --config %config%
+  - cd ..
+  - 7z a %prefix%.zip %prefix%
