@@ -9,6 +9,7 @@ environment:
 
 install:
   - ps: |
+      Install-Module VSSetup -Scope CurrentUser -Force
       Push-Location
       Set-Location C:\
       git clone -q --depth=1 --branch $env:branch https://github.com/llvm-mirror/llvm src
