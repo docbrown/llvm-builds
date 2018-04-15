@@ -4,14 +4,24 @@ environment:
   ninja: https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip
   repo: https://github.com/llvm-mirror/llvm
   branch: release_60
-  targets: AArch64;ARM;Mips;X86
+  targets: AArch64;ARM;X86
   matrix:
+    # AMD64, Shared, Dynamic CRT
     - arch: amd64
-      config: Debug
+      shared: ON
+      crt: MD
+    # AMD64, Static, Dynamic CRT
+    - arch: amd64
+      shared: OFF
+      crt: MD
+    # AMD64, Static, Static CRT
+    - arch: amd64
+      shared: OFF
+      crt: MT
 
 artifacts:
-  - path: '*.zip'
-    name: 'LLVM'
+  - path: llvm-*.zip
+    name: LLVM
 
 install:
   # Install Ninja
@@ -25,7 +35,8 @@ install:
 build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=%arch% -host_arch=amd64 -no_logo
   - cd %APPVEYOR_BUILD_FOLDER%
-  - set prefix=llvm-%branch%-win-%arch%-%config%-static-md
+  - if "%shared%" == "ON" (set linktype=shared) else set linktype=static
+  - set prefix=llvm-%branch%-win-%arch%-Release-%linktype%-%crt%
   - mkdir %prefix%
   - mkdir build && cd build
   # Only the "ps" script type supports multiple lines, but PowerShell treats
@@ -35,7 +46,7 @@ build_script:
   - ps: |
       cmd /c "cmake 2>&1" -G Ninja `
         "-DCMAKE_INSTALL_PREFIX:STRING=$env:APPVEYOR_BUILD_FOLDER\$env:prefix" `
-        "-DCMAKE_BUILD_TYPE:STRING=$env:config" `
+        "-DCMAKE_BUILD_TYPE:STRING=Release" `
         "-DLLVM_TARGETS_TO_BUILD:STRING=$env:targets" `
         -DLLVM_INCLUDE_TOOLS:BOOL=NO `
         -DLLVM_INCLUDE_UTILS:BOOL=NO `
@@ -47,9 +58,10 @@ build_script:
         -DLLVM_ENABLE_RTTI:BOOL=NO `
         -DLLVM_ENABLE_FFI:BOOL=NO `
         -DLLVM_ENABLE_ZLIB:BOOL=NO `
-        -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO `
+        -DLLVM_BUILD_LLVM_DYLIB:BOOL=%env:shared `
+        -DLLVM_USE_CRT_RELEASE:BOOL=%env:crt `
         -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES `
         ..\llvm-src
-  - cmake --build . --target install --config %config%
+  - cmake --build . --target install
   - cd ..
-  - 7z a %prefix%.zip %prefix%
+  - 7z a %prefix%.zip %prefix% > nul
