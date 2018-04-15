@@ -41,7 +41,7 @@ build_script:
         "-DLLVM_ENABLE_FFI:BOOL=OFF",
         "-DLLVM_ENABLE_ZLIB:BOOL=OFF",
         "-DLLVM_BUILD_LLVM_DYLIB:BOOL=OFF",
-        "-DLLVM_OPTIMIZED_TABLEGEN:BOOL=ON",
+        "-DLLVM_OPTIMIZED_TABLEGEN:BOOL=ON"
       )
       cmake $args $srcdir
       cmake --build . --target install --config $env:config
