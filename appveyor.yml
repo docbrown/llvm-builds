@@ -16,8 +16,8 @@ artifacts:
 install:
   # Install Ninja
   - appveyor DownloadFile %ninja% -FileName ninja.zip
-  - 7z x ninja.zip -o ninja
-  - set PATH=%APPVEYOR_BUILD_FOLDER%\ninja;%PATH%
+  - 7z x ninja.zip -oC:\ninja
+  - set PATH=C:\ninja;%PATH%
   - ninja --version
   # Download LLVM sources
   - git clone -q --depth=1 --branch %branch% %repo% llvm-src
