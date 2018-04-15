@@ -29,7 +29,7 @@ build_script:
   - mkdir %prefix%
   - mkdir build && cd build
   - ps: |
-      cmake -G Ninja `
+      cmd /c "cmake 2>&1" -G Ninja `
         "-DCMAKE_INSTALL_PREFIX:STRING=$env:APPVEYOR_BUILD_FOLDER\$env:prefix" `
         "-DCMAKE_BUILD_TYPE:STRING=$env:config" `
         "-DLLVM_TARGETS_TO_BUILD:STRING=$env:targets" `
@@ -42,8 +42,6 @@ build_script:
         -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO `
         -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES `
         ..\llvm-src
-      if ($LastExitCode -ne 0) { exit $LastExitCode }
-      exit 0
   - cmake --build . --target install --config %config%
   - cd ..
   - 7z a %prefix%.zip %prefix%
