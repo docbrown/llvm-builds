@@ -58,8 +58,8 @@ build_script:
         -DLLVM_ENABLE_RTTI:BOOL=NO `
         -DLLVM_ENABLE_FFI:BOOL=NO `
         -DLLVM_ENABLE_ZLIB:BOOL=NO `
-        -DLLVM_BUILD_LLVM_DYLIB:BOOL=%env:shared `
-        -DLLVM_USE_CRT_RELEASE:BOOL=%env:crt `
+        -DLLVM_BUILD_LLVM_DYLIB:BOOL=$env:shared `
+        -DLLVM_USE_CRT_RELEASE:BOOL=$env:crt `
         -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES `
         ..\llvm-src
   - cmake --build . --target install
