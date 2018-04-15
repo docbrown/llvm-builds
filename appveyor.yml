@@ -1,22 +1,47 @@
 image: Visual Studio 2017
 
 environment:
+  repo: https://github.com/llvm-mirror/llvm
   branch: release_60
   targets: all
   matrix:
-    - arch: AMD64
+    - arch: x64
       config: Debug
 
 install:
-  - ps: |
-      Install-Module VSSetup -Scope CurrentUser -Force
-      Push-Location
-      Set-Location C:\
-      git clone -q --depth=1 --branch $env:branch https://github.com/llvm-mirror/llvm src
-      Pop-Location
+  - git clone -q --depth=1 --branch %branch% %repo% C:\src
 
 build_script:
+  - cmd: call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=%arch% -host_arch=x64
   - ps: |
-      .\Build-LLVM.ps1 -Architecture $env:arch -Configuration $env:config `
-        -SourceDirectory "C:\src" -BuildDirectory "C:\build" `
-        -InstallDirectory "C:\install" -Targets $env:targets
+      $srcdir = 'C:\src'
+      $builddir = 'C:\build'
+      $installdir = 'C:\install'
+      $generator = 'Visual Studio 15 2017'
+      switch ($env:arch) {
+        x86 { }
+        x64 { $generator += ' Win64' }
+        arm { $generator += ' ARM' }
+        default { throw "Bad architecture '$env:arch'." }
+      }
+      New-Item $builddir -ItemType Directory
+      New-Item $installdir -ItemType Directory
+      Set-Location $builddir
+      $args = @(
+        '-G', "`"$generator`"",
+        "-DCMAKE_INSTALL_PREFIX:STRING=$installdir",
+        "-DCMAKE_BUILD_TYPE:STRING=$config",
+        "-DLLVM_TARGETS_TO_BUILD:STRING=$($env:targets -join ';')",
+        "-DLLVM_BUILD_TOOLS:BOOL=OFF",
+        "-DLLVM_INCLUDE_TOOLS:BOOL=OFF",
+        "-DLLVM_INCLUDE_EXAMPLES:BOOL=FALSE",
+        "-DLLVM_INCLUDE_TESTS:BOOL=FALSE",
+        "-DLLVM_ENABLE_EH:BOOL=OFF",
+        "-DLLVM_ENABLE_RTTI:BOOL=OFF",
+        "-DLLVM_ENABLE_FFI:BOOL=OFF",
+        "-DLLVM_ENABLE_ZLIB:BOOL=OFF",
+        "-DLLVM_BUILD_LLVM_DYLIB:BOOL=OFF",
+        "-DLLVM_OPTIMIZED_TABLEGEN:BOOL=ON",
+      )
+      cmake $args $srcdir
+      cmake --build . --target install --config $env:config
