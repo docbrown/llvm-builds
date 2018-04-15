@@ -1,7 +1,7 @@
 image: Visual Studio 2017
 
 environment:
-  release: 6.0.0
+  branch: release_60
   targets: all
   matrix:
     - arch: AMD64
@@ -11,10 +11,7 @@ install:
   - ps: |
       Push-Location
       Set-Location C:\
-      $r = $env:release
-      Start-FileDownload "http://releases.llvm.org/$r/llvm-$r.src.tar.xz"
-      7z x -so "llvm-$r.src.tar.xz" | 7z x -si -ttar
-      Rename-Item "llvm-$r.src" src
+      git clone --depth=1 --branch $env:branch https://github.com/llvm-mirror/llvm src
       Pop-Location
 
 build_script:
