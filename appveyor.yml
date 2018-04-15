@@ -28,6 +28,10 @@ build_script:
   - set prefix=llvm-%branch%-win-%arch%-static-md
   - mkdir %prefix%
   - mkdir build && cd build
+  # Only the "ps" script type supports multiple lines, but PowerShell treats
+  # writes to stderr as actual errors that will fail the build. Redirecting
+  # stderr to stdout isn't enough. We also have to run the command inside a
+  # cmd.exe sub-process. Ugh.
   - ps: |
       cmd /c "cmake 2>&1" -G Ninja `
         "-DCMAKE_INSTALL_PREFIX:STRING=$env:APPVEYOR_BUILD_FOLDER\$env:prefix" `
