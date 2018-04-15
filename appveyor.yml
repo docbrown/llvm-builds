@@ -16,7 +16,7 @@ artifacts:
 install:
   # Install Ninja
   - appveyor DownloadFile %ninja% -FileName ninja.zip
-  - 7z x ninja.zip -oC:\ninja
+  - 7z x ninja.zip -oC:\ninja > nul
   - set PATH=C:\ninja;%PATH%
   - ninja --version
   # Download LLVM sources
@@ -28,19 +28,19 @@ build_script:
   - set prefix=llvm-%branch%-win-%arch%-static-md
   - mkdir %prefix%
   - mkdir build && cd build
-  - cmd: |
-      cmake -G Ninja -Thost=x64^
-       -DCMAKE_INSTALL_PREFIX:STRING=%APPVEYOR_BUILD_FOLDER%\%prefix%^
-       -DCMAKE_BUILD_TYPE:STRING=%config%^
-       -DLLVM_TARGETS_TO_BUILD:STRING=%targets%^
-       -DLLVM_INCLUDE_EXAMPLES:BOOL=NO^
-       -DLLVM_INCLUDE_TESTS:BOOL=NO^
-       -DLLVM_ENABLE_EH:BOOL=NO^
-       -DLLVM_ENABLE_RTTI:BOOL=NO^
-       -DLLVM_ENABLE_FFI:BOOL=NO^
-       -DLLVM_ENABLE_ZLIB:BOOL=NO^
-       -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO^
-       -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES^
+  - ps: |
+      cmake -G Ninja -Thost=x64 `
+       "-DCMAKE_INSTALL_PREFIX:STRING=$env:APPVEYOR_BUILD_FOLDER\$env:prefix" `
+       "-DCMAKE_BUILD_TYPE:STRING=$env:config" `
+       "-DLLVM_TARGETS_TO_BUILD:STRING=$env:targets" `
+       -DLLVM_INCLUDE_EXAMPLES:BOOL=NO `
+       -DLLVM_INCLUDE_TESTS:BOOL=NO `
+       -DLLVM_ENABLE_EH:BOOL=NO `
+       -DLLVM_ENABLE_RTTI:BOOL=NO `
+       -DLLVM_ENABLE_FFI:BOOL=NO `
+       -DLLVM_ENABLE_ZLIB:BOOL=NO `
+       -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO `
+       -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES `
        ..\llvm-src
   - cmake --build . --target install --config %config%
   - cd ..
