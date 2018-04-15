@@ -25,7 +25,7 @@ install:
 build_script:
   - call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\Tools\vsdevcmd.bat" -arch=%arch% -host_arch=amd64 -no_logo
   - cd %APPVEYOR_BUILD_FOLDER%
-  - set prefix=llvm-%branch%-win-%arch%-static-md
+  - set prefix=llvm-%branch%-win-%arch%-%config%-static-md
   - mkdir %prefix%
   - mkdir build && cd build
   # Only the "ps" script type supports multiple lines, but PowerShell treats
