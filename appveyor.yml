@@ -3,20 +3,21 @@ image: Visual Studio 2017
 environment:
   release: 6.0.0
   targets: all
-  - arch: AMD64
-    config: Debug
+  matrix:
+    - arch: AMD64
+      config: Debug
 
 install:
-  ps: |
-    Push-Location
-    Set-Location C:\
-    Start-FileDownload "http://releases.llvm.org/$release/llvm-$release.src.tar.xz"
-    7z x -so "llvm-$release.src.tar.xz" | 7z x -si -ttar
-    Rename-Item "llvm-$release.src" src
-    Pop-Location
+  - ps: |
+      Push-Location
+      Set-Location C:\
+      Start-FileDownload "http://releases.llvm.org/$release/llvm-$release.src.tar.xz"
+      7z x -so "llvm-$release.src.tar.xz" | 7z x -si -ttar
+      Rename-Item "llvm-$release.src" src
+      Pop-Location
 
 build_script:
-  ps: |
-    .\Build-LLVM.ps1 -Architecture $env:arch -Configuration $env:config `
-      -SourceDirectory "C:\src" -BuildDirectory "C:\build" `
-      -InstallDirectory "C:\install" -Targets $env:targets
+  - ps: |
+      .\Build-LLVM.ps1 -Architecture $env:arch -Configuration $env:config `
+        -SourceDirectory "C:\src" -BuildDirectory "C:\build" `
+        -InstallDirectory "C:\install" -Targets $env:targets
