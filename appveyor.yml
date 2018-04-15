@@ -42,6 +42,8 @@ build_script:
         -DLLVM_BUILD_LLVM_DYLIB:BOOL=NO `
         -DLLVM_OPTIMIZED_TABLEGEN:BOOL=YES `
         ..\llvm-src
+      if ($LastExitCode -ne 0) { exit $LastExitCode }
+      exit 0
   - cmake --build . --target install --config %config%
   - cd ..
   - 7z a %prefix%.zip %prefix%
